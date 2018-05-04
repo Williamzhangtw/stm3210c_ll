@@ -37,7 +37,7 @@
 
 /* Includes ------------------------------------------------------------------*/
 #include "main.h"
-
+#include "stdio.h"
 /** @addtogroup STM32F1xx_LL_Examples
   * @{
   */
@@ -69,6 +69,7 @@ int main(void)
   /* Configure the system clock to 72 MHz */
   SystemClock_Config();
 
+	printf("system initialize completed!\n");
   /* Add your application code here */
   Configure_GPIO();
   
