@@ -62,12 +62,21 @@
 #include "stm32f1xx_ll_usart.h"
 #include "stm32f1xx_ll_wwdg.h"
 
+
+#include "stdio.h"
+
 #if defined(USE_FULL_ASSERT)
 #include "stm32_assert.h"
 #endif /* USE_FULL_ASSERT */
 
 /* Exported types ------------------------------------------------------------*/
 /* Exported constants --------------------------------------------------------*/
+
+#define RCC_ERROR_NONE    0
+#define RCC_ERROR_TIMEOUT 1
+/* Define used to enable time-out management*/
+#define USE_TIMEOUT       0
+
 
 #ifndef NVIC_PRIORITYGROUP_0
 #define NVIC_PRIORITYGROUP_0         ((uint32_t)0x00000007) /*!< 0 bit  for pre-emption priority,

@@ -67,6 +67,15 @@
   */
 void NMI_Handler(void)
 {
+   printf("Enter NMI\n");
+  if (LL_RCC_IsActiveFlag_HSECSS() != 0)
+  {
+    /* Clear the flag */
+    LL_RCC_ClearFlag_HSECSS();
+    
+    /* Handle the HSE failure directly in main.c */
+    printf("Handle HSE failure\n"); 
+  }
 }
 
 /**
@@ -164,6 +173,28 @@ void SysTick_Handler(void)
 /*  file (startup_stm32f1xx.s).                                               */
 /******************************************************************************/
 
+
+/**
+  * Brief   This function handles RCC interrupt request 
+  *         and switch the system clock to HSE.
+  * Retval  None
+  */
+void RCC_IRQHandler(void)
+{
+  /* Check the flag HSE ready */
+  if (LL_RCC_IsActiveFlag_HSERDY() != 0)
+  {
+    /* Clear the flag HSE ready */
+    LL_RCC_ClearFlag_HSERDY();
+    
+    /* Switch the system clock to HSE */
+    LL_RCC_SetSysClkSource(LL_RCC_SYS_CLKSOURCE_HSE);
+    printf("switch the system clock to HSE\n");
+    
+    /* 1ms config with HSE 8MHz*/
+    LL_Init1msTick(25000000);
+  }
+}
 
 
 /**

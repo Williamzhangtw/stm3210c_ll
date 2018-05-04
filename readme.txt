@@ -103,4 +103,19 @@ In order to make the program work, you must do the following :
  */
 
 @par Example Description 
-This example describes how to add ITM printf
+This example describes how to use the RCC LL API how to start the HSE 
+and use it as system clock.
+
+At start-up, HSI clock is used as system clock (default clock after reset) and then Systick is 
+configured at 1 ms using HSI_VALUE define.
+
+Then, HSE is started and we wait for ready state. System clock is set to HSE thanks to IT 
+triggered by HSE ready.
+- LED2 is turned ON to indicate that HSE is ready.
+- LED2 is toggled with a timing of 1 second in case of error to switch SYSCLK to HSE or if HSE CSS
+failure is detected (through NMI IT).
+
+ @note In HSE bypass mode, input clock will come from the MCO from
+       ST_LINK MCU. This frequency cannot be changed, and it is fixed
+       at 8 MHz. To use MCO from ST_LINK you need to check the Board
+       User Manual to know how to connect the MCO pin to the STM32 device.

@@ -37,7 +37,7 @@
 
 /* Includes ------------------------------------------------------------------*/
 #include "main.h"
-#include "stdio.h"
+
 /** @addtogroup STM32F1xx_LL_Examples
   * @{
   */
@@ -52,8 +52,12 @@
 /* Private variables ---------------------------------------------------------*/
 /* Private function prototypes -----------------------------------------------*/
 static void LL_Init(void);
-void     SystemClock_Config(void);
-void     Configure_GPIO(void);
+void 	SystemClock_Config(void);
+void	LED_Init(void);
+void	LED_On(void);
+void	LED_Off(void);
+void	LED_Toggle(void);
+void     StartHSE(void);
 /* Private functions ---------------------------------------------------------*/
 
 /**
@@ -69,10 +73,14 @@ int main(void)
   /* Configure the system clock to 72 MHz */
   SystemClock_Config();
 
-	printf("system initialize completed!\n");
+	printf("HSI system initialize completed!\n");
   /* Add your application code here */
-  Configure_GPIO();
+  LED_Init();
   
+  StartHSE();
+  
+ // while (LL_RCC_GetSysClkSource() != LL_RCC_SYS_CLKSOURCE_STATUS_HSE)
+    ;
   /* Infinite loop */
   while (1)
   {
@@ -87,7 +95,7 @@ int main(void)
 static void LL_Init(void)
 {
   
-
+//At start-up, HSI clock is used as system clock (default clock after reset) 
   LL_APB2_GRP1_EnableClock(LL_APB2_GRP1_PERIPH_AFIO);
 
   NVIC_SetPriorityGrouping(NVIC_PRIORITYGROUP_4);
@@ -122,7 +130,7 @@ static void LL_Init(void)
   * @param  None
   * @retval None
   */
-void Configure_GPIO(void)
+void LED_Init(void)
 {
   /* Enable the LED2 Clock */
   LED2_GPIO_CLK_ENABLE();
@@ -137,6 +145,40 @@ void Configure_GPIO(void)
   //LL_GPIO_SetPinPull(LED2_GPIO_PORT, LED2_PIN, LL_GPIO_PULL_NO);
 }
 
+/**
+  * @brief  Turn on LED2
+  * @param  None
+  * @retval None
+  */
+void	LED_On(void)
+{
+	/* Turn LED2 On */
+	LL_GPIO_SetOutputPin(LED2_GPIO_PORT,LED2_PIN);
+}
+
+
+/**
+  * @brief  Turn off LED2
+  * @param  None
+  * @retval None
+  */
+void	LED_Off(void)
+{
+  /* Turn LED2 Off */
+  LL_GPIO_ResetOutputPin(LED2_GPIO_PORT,LED2_PIN);
+}
+
+
+/**
+  * @brief  Toggle LED2
+  * @param  None
+  * @retval None
+  */
+void	LED_Toggle(void)
+{
+  /* Toggle LED2 */
+  LL_GPIO_TogglePin(LED2_GPIO_PORT,LED2_PIN);
+}
 
 /* ==============   BOARD SPECIFIC CONFIGURATION CODE BEGIN    ============== */
 /**
@@ -210,6 +252,67 @@ void SystemClock_Config(void)
   // NVIC_SetPriority(SysTick_IRQn, NVIC_EncodePriority(NVIC_GetPriorityGrouping(),0, 0));
 }
 
+/**
+  * Brief   This function enables the interruption HSE ready,
+  *         and start the HSE as external clock.
+  * @param  None
+  * Retval  None
+  */
+void StartHSE(void)
+{
+  /* Configure NVIC for RCC */
+  NVIC_EnableIRQ(RCC_IRQn); 
+  NVIC_SetPriority(RCC_IRQn,0); 
+  
+  /* Enable interrupt on HSE ready */
+  /* Enable the CSS 
+     Enable the HSE and set HSEBYP to use the external clock 
+     instead of an oscillator 
+     Enable HSE */
+  /* Note : the clock is switched to HSE in the RCC_IRQHandler ISR */
+	//The HSERDY flag in the Clock control register (RCC_CR) indicates 
+	//if the high-speed external oscillator is stable or not. At startup,
+	//the clock is not released until this bit is set by hardware. 
+	//An interrupt can be generated if enabled in the Clock interrupt register (RCC_CIR).
+  LL_RCC_EnableIT_HSERDY(); 
+  //LL_RCC_HSE_EnableCSS(); 
+  LL_RCC_HSE_EnableBypass(); 
+	
+	//The HSE Crystal can be switched on and off using the HSEON bit
+  LL_RCC_HSE_Enable();  
+}
+
+/**
+  * @brief  Wait for HSE ready
+  * @param  None
+  * @retval RCC_ERROR_NONE if no error
+  */
+uint32_t RCC_WaitForHSEReady()
+{
+#if (USE_TIMEOUT == 1)
+  /* Set timeout to 1 sec */
+  uint32_t timeout = TIMEOUT_VALUE;
+#endif /* USE_TIMEOUT */
+  
+  /* Check that the condition is met */
+  while (LL_RCC_GetSysClkSource() != LL_RCC_SYS_CLKSOURCE_STATUS_HSE)
+  {
+#if (USE_TIMEOUT == 1)
+    /* Check Systick counter flag to decrement the time-out value */
+    if (LL_SYSTICK_IsActiveCounterFlag()) 
+    { 
+      if(--timeout == 0)
+      {
+        /* Time-out occurred. Return an error */
+        return RCC_ERROR_TIMEOUT;
+      }
+    } 
+#endif /* USE_TIMEOUT */
+  }
+  return RCC_ERROR_NONE;
+}
+
+  
 /* ==============   BOARD SPECIFIC CONFIGURATION CODE END      ============== */
 
 /**
