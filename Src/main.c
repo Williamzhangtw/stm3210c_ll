@@ -37,7 +37,7 @@
 
 /* Includes ------------------------------------------------------------------*/
 #include "main.h"
-#include "stdio.h"
+
 /** @addtogroup STM32F1xx_LL_Examples
   * @{
   */
@@ -54,6 +54,9 @@
 static void LL_Init(void);
 void     SystemClock_Config(void);
 void     Configure_GPIO(void);
+void  KEY_BUTTON_Init(void);
+void     LED_Init(void);
+void LED_Toggle(void);
 /* Private functions ---------------------------------------------------------*/
 
 /**
@@ -68,16 +71,16 @@ int main(void)
 	
   /* Configure the system clock to 72 MHz */
   SystemClock_Config();
-
+  
 	printf("system initialize completed!\n");
   /* Add your application code here */
-  Configure_GPIO();
+  LED_Init();
+  KEY_BUTTON_Init();
   
   /* Infinite loop */
   while (1)
   {
-		LL_GPIO_TogglePin(LED2_GPIO_PORT, LED2_PIN);
-    
+    LED_Toggle();
     /* Insert delay 250 ms */
     LL_mDelay(250);
   }
@@ -122,7 +125,7 @@ static void LL_Init(void)
   * @param  None
   * @retval None
   */
-void Configure_GPIO(void)
+void LED_Init(void)
 {
   /* Enable the LED2 Clock */
   LED2_GPIO_CLK_ENABLE();
@@ -137,6 +140,30 @@ void Configure_GPIO(void)
   //LL_GPIO_SetPinPull(LED2_GPIO_PORT, LED2_PIN, LL_GPIO_PULL_NO);
 }
 
+void LED_Toggle(void)
+{
+  LL_GPIO_TogglePin(LED2_GPIO_PORT, LED2_PIN);
+}
+void KEY_BUTTON_Init(void)
+{
+  /* Enable the button clock */
+  KEY_BUTTON_GPIO_CLK_ENABLE();
+  
+  /* Configure GPIO for BUTTION */
+  LL_GPIO_SetPinMode(KEY_BUTTON_GPIO_PORT, KEY_BUTTON_PIN, LL_GPIO_MODE_INPUT);
+  
+  /* Connect External Line to the GPIO */
+  KEY_BUTTON_SYSCFG_SET_EXTI();
+  
+  /* Enable a falling trigger EXTI line */
+  KEY_BUTTON_EXTI_LINE_ENABLE();
+  KEY_BUTTON_EXTI_FALLING_TRIG_ENABLE();
+  
+  /* Configure NVIC */
+  NVIC_EnableIRQ(KEY_BUTTON_EXTI_IRQn);
+  NVIC_SetPriority(KEY_BUTTON_EXTI_IRQn, 0x03);
+}
+  
 
 /* ==============   BOARD SPECIFIC CONFIGURATION CODE BEGIN    ============== */
 /**

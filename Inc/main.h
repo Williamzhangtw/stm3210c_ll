@@ -62,6 +62,8 @@
 #include "stm32f1xx_ll_usart.h"
 #include "stm32f1xx_ll_wwdg.h"
 
+#include "stdio.h"
+
 #if defined(USE_FULL_ASSERT)
 #include "stm32_assert.h"
 #endif /* USE_FULL_ASSERT */
@@ -144,7 +146,7 @@
                                                   LL_APB2_GRP1_EnableClock(LL_APB2_GRP1_PERIPH_AFIO);                  \
                                                   LL_GPIO_AF_SetEXTISource(LL_GPIO_AF_EXTI_PORTB, LL_GPIO_AF_EXTI_LINE9);  \
                                                 } while(0)
-#define KEY_BUTTON_IRQHANDLER                  EXTI9_5_IRQQHandler
+#define KEY_BUTTON_IRQHANDLER                  EXTI9_5_IRQHandler
 
 /**
   * @brief Wake-up push-button

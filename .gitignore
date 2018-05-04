@@ -68,7 +68,7 @@
 *.scratch
 *.mxproject #cubemx
 *.sct  #scatter file
-
+*.TMP
 
 # Miscellaneous
 *.tra

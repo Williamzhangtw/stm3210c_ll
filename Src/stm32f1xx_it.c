@@ -164,7 +164,14 @@ void SysTick_Handler(void)
 /*  file (startup_stm32f1xx.s).                                               */
 /******************************************************************************/
 
-
+void KEY_BUTTON_IRQHANDLER (void)
+{
+  if(LL_EXTI_IsActiveFlag_0_31(KEY_BUTTON_EXTI_LINE)!= RESET)
+  {
+    LL_EXTI_ClearFlag_0_31(KEY_BUTTON_EXTI_LINE);
+    printf("button has been pressed\n");
+  }
+}
 
 /**
   * @}
