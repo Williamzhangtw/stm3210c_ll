@@ -65,9 +65,13 @@
   #define assert_param(expr) ((void)0U)
 #endif /* USE_FULL_ASSERT */
 
+	
+
+	
 #ifdef __cplusplus
 }
 #endif
+ 
 
 #endif /* __STM32_ASSERT_H */
 

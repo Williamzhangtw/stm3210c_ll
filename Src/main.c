@@ -51,8 +51,9 @@
 /* Private macro -------------------------------------------------------------*/
 /* Private variables ---------------------------------------------------------*/
 /* Private function prototypes -----------------------------------------------*/
+static void LL_Init(void);
 void     SystemClock_Config(void);
-
+void     Configure_GPIO(void);
 /* Private functions ---------------------------------------------------------*/
 
 /**
@@ -62,17 +63,79 @@ void     SystemClock_Config(void);
   */
 int main(void)
 {
+	/* Reset of all peripherals, Initializes the Flash interface and the Systick. */
+  LL_Init();
+	
   /* Configure the system clock to 72 MHz */
   SystemClock_Config();
 
   /* Add your application code here */
-  
+  Configure_GPIO();
   
   /* Infinite loop */
   while (1)
   {
+		LL_GPIO_TogglePin(LED2_GPIO_PORT, LED2_PIN);
+    
+    /* Insert delay 250 ms */
+    LL_mDelay(250);
   }
 }
+
+
+static void LL_Init(void)
+{
+  
+
+  LL_APB2_GRP1_EnableClock(LL_APB2_GRP1_PERIPH_AFIO);
+
+  NVIC_SetPriorityGrouping(NVIC_PRIORITYGROUP_4);
+
+  /* System interrupt init*/
+  /* MemoryManagement_IRQn interrupt configuration */
+  NVIC_SetPriority(MemoryManagement_IRQn, NVIC_EncodePriority(NVIC_GetPriorityGrouping(),0, 0));
+  /* BusFault_IRQn interrupt configuration */
+  NVIC_SetPriority(BusFault_IRQn, NVIC_EncodePriority(NVIC_GetPriorityGrouping(),0, 0));
+  /* UsageFault_IRQn interrupt configuration */
+  NVIC_SetPriority(UsageFault_IRQn, NVIC_EncodePriority(NVIC_GetPriorityGrouping(),0, 0));
+  /* SVCall_IRQn interrupt configuration */
+  NVIC_SetPriority(SVCall_IRQn, NVIC_EncodePriority(NVIC_GetPriorityGrouping(),0, 0));
+  /* DebugMonitor_IRQn interrupt configuration */
+  NVIC_SetPriority(DebugMonitor_IRQn, NVIC_EncodePriority(NVIC_GetPriorityGrouping(),0, 0));
+  /* PendSV_IRQn interrupt configuration */
+  NVIC_SetPriority(PendSV_IRQn, NVIC_EncodePriority(NVIC_GetPriorityGrouping(),0, 0));
+  /* SysTick_IRQn interrupt configuration */
+  NVIC_SetPriority(SysTick_IRQn, NVIC_EncodePriority(NVIC_GetPriorityGrouping(),0, 0));
+
+    /**NOJTAG: JTAG-DP Disabled and SW-DP Enabled 
+    */
+  LL_GPIO_AF_Remap_SWJ_NOJTAG();
+
+}
+
+/**
+  * @brief  This function configures GPIO
+  * @note   Peripheral configuration is minimal configuration from reset values.
+  *         Thus, some useless LL unitary functions calls below are provided as
+  *         commented examples - setting is default configuration from reset.
+  * @param  None
+  * @retval None
+  */
+void Configure_GPIO(void)
+{
+  /* Enable the LED2 Clock */
+  LED2_GPIO_CLK_ENABLE();
+
+  /* Configure IO in output push-pull mode to drive external LED2 */
+  LL_GPIO_SetPinMode(LED2_GPIO_PORT, LED2_PIN, LL_GPIO_MODE_OUTPUT);
+  /* Reset value is LL_GPIO_OUTPUT_PUSHPULL */
+  //LL_GPIO_SetPinOutputType(LED2_GPIO_PORT, LED2_PIN, LL_GPIO_OUTPUT_PUSHPULL);
+  /* Reset value is LL_GPIO_SPEED_FREQ_LOW */
+  //LL_GPIO_SetPinSpeed(LED2_GPIO_PORT, LED2_PIN, LL_GPIO_SPEED_FREQ_LOW);
+  /* Reset value is LL_GPIO_PULL_NO */
+  //LL_GPIO_SetPinPull(LED2_GPIO_PORT, LED2_PIN, LL_GPIO_PULL_NO);
+}
+
 
 /* ==============   BOARD SPECIFIC CONFIGURATION CODE BEGIN    ============== */
 /**
@@ -94,48 +157,75 @@ int main(void)
   */
 void SystemClock_Config(void)
 {
-  /* Enable HSE oscillator */
-  LL_RCC_HSE_Enable();
-  while(LL_RCC_HSE_IsReady() != 1)
-  {
-  };
-
+	////////////////////////////////////
+	/* system clock configure start */
+	
   /* Set FLASH latency */
-  LL_FLASH_SetLatency(LL_FLASH_LATENCY_2);
-  
-  /* PLL2 configuration and activation */
-  LL_RCC_PLL_ConfigDomain_PLL2(LL_RCC_HSE_PREDIV2_DIV_5,LL_RCC_PLL2_MUL_8);
-  LL_RCC_PLL2_Enable();
-  while(LL_RCC_PLL2_IsReady() != 1)
+  LL_FLASH_SetLatency(LL_FLASH_LATENCY_0);
+	
+  if(LL_FLASH_GetLatency() != LL_FLASH_LATENCY_0)
+	{
+		Error_Handler();  
+	}  
+	
+	/* HSI Calibrate */
+	LL_RCC_HSI_SetCalibTrimming(16);
+	/* Enable HSI oscillator */
+  LL_RCC_HSI_Enable();
+	/* Wait till HSI is ready */
+  while(LL_RCC_HSI_IsReady() != 1)
   {
   };
-    
-  /* Main PLL configuration and activation */
-  LL_RCC_PLL_ConfigDomain_SYS(LL_RCC_PLLSOURCE_PLL2_DIV_5, LL_RCC_PLL_MUL_9);
-  LL_RCC_PLL_Enable();
-  while(LL_RCC_PLL_IsReady() != 1)
+	
+	/* Sysclk activation on the HSI */
+  LL_RCC_SetSysClkSource(LL_RCC_SYS_CLKSOURCE_HSI);
+	
+	/* Wait till System clock is ready */
+  while(LL_RCC_GetSysClkSource() != LL_RCC_SYS_CLKSOURCE_STATUS_HSI)
   {
   };
-
-  /* Sysclk activation on the main PLL */
+	
+  /* Set AHB prescaler */
   LL_RCC_SetAHBPrescaler(LL_RCC_SYSCLK_DIV_1);
-  LL_RCC_SetSysClkSource(LL_RCC_SYS_CLKSOURCE_PLL);
-  while(LL_RCC_GetSysClkSource() != LL_RCC_SYS_CLKSOURCE_STATUS_PLL)
-  {
-  };
-
   /* Set APB1 & APB2 prescaler */
-  LL_RCC_SetAPB1Prescaler(LL_RCC_APB1_DIV_2);
+  LL_RCC_SetAPB1Prescaler(LL_RCC_APB1_DIV_1);
   LL_RCC_SetAPB2Prescaler(LL_RCC_APB2_DIV_1);
-
-  /* Set systick to 1ms */
-  SysTick_Config(72000000 / 1000);
-
+	
   /* Update CMSIS variable (which can be updated also through SystemCoreClockUpdate function) */
-  SystemCoreClock = 72000000;
+  LL_SetSystemCoreClock(8000000); //SystemCoreClock = 8000000;
+	
+	/* system clock configure end */
+	
+	////////////////////////////////////
+	/* systick configure start */
+	
+  /* Set systick to 1ms */
+  LL_Init1msTick(8000000);//SysTick_Config(8000000 / 1000);
+
+	/* select the systick clock source */
+	LL_SYSTICK_SetClkSource(LL_SYSTICK_CLKSOURCE_HCLK);
+
+	/* SysTick_IRQn interrupt configuration */
+  // NVIC_SetPriority(SysTick_IRQn, NVIC_EncodePriority(NVIC_GetPriorityGrouping(),0, 0));
 }
 
 /* ==============   BOARD SPECIFIC CONFIGURATION CODE END      ============== */
+
+/**
+  * @brief  This function is executed in case of error occurrence.
+  * @param  file: The file name as string.
+  * @param  line: The line in file as a number.
+  * @retval None
+  */
+void _Error_Handler(char *file, int line)
+{
+  /* USER CODE BEGIN Error_Handler_Debug */
+  /* User can add his own implementation to report the HAL error return state */
+  while(1)
+  {
+  }
+  /* USER CODE END Error_Handler_Debug */
+}
 
 #ifdef  USE_FULL_ASSERT
 
