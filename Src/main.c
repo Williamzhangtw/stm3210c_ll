@@ -165,6 +165,51 @@ void KEY_BUTTON_Init(void)
 }
   
 
+
+
+
+
+
+void ChantePLL_HSI (HSI_PLL_ENUM index)
+{
+  /* Select HSI as system clock */
+  /* Wait for HSI switched */
+  LL_RCC_SetSysClkSource(LL_RCC_SYS_CLKSOURCE_HSI); 
+  while (LL_RCC_GetSysClkSource() != LL_RCC_SYS_CLKSOURCE_STATUS_HSI) 
+    ;
+  /* Disable the PLL */
+  /* Wait until PLLRDY is cleared */
+  LL_RCC_PLL_Disable();
+  while(LL_RCC_PLL_IsReady() != 0)
+    ;
+  
+  switch(index)
+  {
+    case _16M:
+      LL_FLASH_SetLatency(LL_FLASH_LATENCY_0);
+      LL_RCC_PLL_ConfigDomain_SYS(LL_RCC_PLLSOURCE_HSI_DIV_2, LL_RCC_PLL_MUL_4);
+      printf("16M\n");
+      break;
+    case _32M:
+      LL_RCC_PLL_ConfigDomain_SYS(LL_RCC_PLLSOURCE_HSI_DIV_2, LL_RCC_PLL_MUL_8);
+      LL_FLASH_SetLatency(LL_FLASH_LATENCY_1);
+      printf("32M\n");
+      break;
+    case _36M:
+      LL_RCC_PLL_ConfigDomain_SYS(LL_RCC_PLLSOURCE_HSI_DIV_2, LL_RCC_PLL_MUL_9);
+      LL_FLASH_SetLatency(LL_FLASH_LATENCY_2);
+      printf("36M\n");
+      break;
+    default:
+      break;
+  }
+  LL_RCC_PLL_Enable();
+  LL_RCC_SetSysClkSource(LL_RCC_SYS_CLKSOURCE_PLL); 
+  while (LL_RCC_GetSysClkSource() != LL_RCC_SYS_CLKSOURCE_STATUS_PLL) 
+    ;
+  
+}
+
 /* ==============   BOARD SPECIFIC CONFIGURATION CODE BEGIN    ============== */
 /**
   * @brief  System Clock Configuration

@@ -166,10 +166,16 @@ void SysTick_Handler(void)
 
 void KEY_BUTTON_IRQHANDLER (void)
 {
+  static uint8_t index = 0;
+  
   if(LL_EXTI_IsActiveFlag_0_31(KEY_BUTTON_EXTI_LINE)!= RESET)
   {
+    index++;
+    ChantePLL_HSI(index%3);
+    
     LL_EXTI_ClearFlag_0_31(KEY_BUTTON_EXTI_LINE);
-    printf("button has been pressed\n");
+    
+   
   }
 }
 
