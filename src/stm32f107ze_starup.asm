@@ -16,10 +16,12 @@ __Vectors		DCD 	0x20001000			; Initial MSP
 ; Reset handler
 Reset_Handler  	PROC						; Function begin
 				EXPORT	Reset_Handler
-start
-		MOV  	R0, #0x10
-		MOV		R1, #0x18
-		ADDS	R0,R0,R1
+				IMPORT  entry
+				LDR R0, =entry
+				BLX R0
+;		MOV  	R0, #0x10
+;		MOV		R1, #0x18
+;		ADDS	R0,R0,R1
 loop	B		loop
 				ENDP						; Function end
 				
